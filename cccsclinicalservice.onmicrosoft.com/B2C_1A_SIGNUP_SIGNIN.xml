@@ -6,7 +6,7 @@
     <PolicyId>B2C_1A_TrustFrameworkExtensions</PolicyId>
   </BasePolicy>
   <RelyingParty>
-    <DefaultUserJourney ReferenceId="SignUpOrSignIn" />
+    <DefaultUserJourney ReferenceId="ClinicalADSignUpOrSignIn" />
     <Endpoints>
       <!--points to refresh token journey when app makes refresh token request-->
       <Endpoint Id="Token" UserJourneyReferenceId="RedeemRefreshToken" />
@@ -24,6 +24,7 @@
         <OutputClaim ClaimTypeReferenceId="email" />
         <OutputClaim ClaimTypeReferenceId="objectId" PartnerClaimType="sub" />
         <OutputClaim ClaimTypeReferenceId="tenantId" AlwaysUseDefaultValue="true" DefaultValue="{Policy:TenantObjectId}" />
+        <OutputClaim ClaimTypeReferenceId="preferred_username" PartnerClaimType="userPrincipalName" />
       </OutputClaims>
       <SubjectNamingInfo ClaimType="sub" />
     </TechnicalProfile>
