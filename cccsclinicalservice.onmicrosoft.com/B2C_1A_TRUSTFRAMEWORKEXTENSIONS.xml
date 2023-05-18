@@ -35,6 +35,52 @@
     </ContentDefinitions>
   </BuildingBlocks>
   <ClaimsProviders>
+  <ClaimsProvider>
+    <DisplayName>Token Issuer</DisplayName>
+    <TechnicalProfiles>
+      <TechnicalProfile Id="UserInfoIssuer">
+        <DisplayName>JSON Issuer</DisplayName>
+        <Protocol Name="None" />
+        <OutputTokenFormat>JSON</OutputTokenFormat>
+        <CryptographicKeys>
+          <Key Id="issuer_secret" StorageReferenceId="B2C_1A_TokenSigningKeyContainer" />
+        </CryptographicKeys>
+        <!-- The Below claims are what will be returned on the UserInfo Endpoint if in the Claims Bag-->
+        <InputClaims>
+          <InputClaim ClaimTypeReferenceId="objectId"/>
+          <InputClaim ClaimTypeReferenceId="givenName"/>
+          <InputClaim ClaimTypeReferenceId="surname"/>
+          <InputClaim ClaimTypeReferenceId="displayName"/>
+          <InputClaim ClaimTypeReferenceId="signInNames.emailAddress"/>
+          <InputClaim ClaimTypeReferenceId="userPrincipalName"/>
+        </InputClaims>
+      </TechnicalProfile>
+      <TechnicalProfile Id="UserInfoAuthorization">
+        <DisplayName>UserInfo authorization</DisplayName>
+        <Protocol Name="None" />
+        <InputTokenFormat>JWT</InputTokenFormat>
+        <Metadata>
+          <!-- Update the Issuer and Audience below -->
+          <!-- Audience is optional, Issuer is required-->
+          <Item Key="issuer">https://cccsclinicalservice.b2clogin.com/ca26b7de-b9aa-41f9-a85a-b3c70b9c1a70/v2.0/</Item>
+          <Item Key="audience">[ "1e5a2f04-be17-41b1-91e8-f30965f345eb","3d6d7d6a-7ab4-47ca-bcb0-589af2af5eb5" ]</Item>
+          <Item Key="client_assertion_type">urn:ietf:params:oauth:client-assertion-type:jwt-bearer</Item>
+        </Metadata>
+        <CryptographicKeys>
+          <Key Id="issuer_secret" StorageReferenceId="B2C_1A_TokenSigningKeyContainer" />
+        </CryptographicKeys>
+        <OutputClaims>
+          <OutputClaim ClaimTypeReferenceId="objectId" PartnerClaimType="sub"/>
+          <OutputClaim ClaimTypeReferenceId="signInNames.emailAddress" PartnerClaimType="email"/>
+          <!-- Optional claims to read from the access token. -->
+          <OutputClaim ClaimTypeReferenceId="givenName" PartnerClaimType="given_name"/>
+          <OutputClaim ClaimTypeReferenceId="surname" PartnerClaimType="family_name"/>
+          <OutputClaim ClaimTypeReferenceId="displayName" PartnerClaimType="name"/> 
+          <OutputClaim ClaimTypeReferenceId="userPrincipalName"/>
+        </OutputClaims>
+      </TechnicalProfile>
+    </TechnicalProfiles>
+  </ClaimsProvider>
     <ClaimsProvider>
       <Domain>clinicalservicead.onmicrosoft</Domain>
       <DisplayName>Login using Clinical Service AD</DisplayName>
@@ -54,6 +100,49 @@
           </Metadata>
           <CryptographicKeys>
             <Key Id="client_secret" StorageReferenceId="B2C_1A_AADAppSecret"/>
+          </CryptographicKeys>
+          <OutputClaims>
+            <OutputClaim ClaimTypeReferenceId="issuerUserId" PartnerClaimType="oid"/>
+            <OutputClaim ClaimTypeReferenceId="tenantId" PartnerClaimType="tid"/>
+            <OutputClaim ClaimTypeReferenceId="givenName" PartnerClaimType="given_name"/>
+            <OutputClaim ClaimTypeReferenceId="surName" PartnerClaimType="family_name"/>            
+            <OutputClaim ClaimTypeReferenceId="displayName" PartnerClaimType="name"/>
+            <OutputClaim ClaimTypeReferenceId="authenticationSource" DefaultValue="socialIdpAuthentication" AlwaysUseDefaultValue="true"/>
+            <OutputClaim ClaimTypeReferenceId="identityProvider" PartnerClaimType="iss"/>
+            <OutputClaim ClaimTypeReferenceId="sub" PartnerClaimType="sub"/>
+            <OutputClaim ClaimTypeReferenceId="objectId" />
+            <OutputClaim ClaimTypeReferenceId="email" />
+            <OutputClaim ClaimTypeReferenceId="userPrincipalName" />
+          </OutputClaims>
+          <OutputClaimsTransformations>
+            <OutputClaimsTransformation ReferenceId="CreateRandomUPNUserName"/>
+            <OutputClaimsTransformation ReferenceId="CreateUserPrincipalName"/>
+            <OutputClaimsTransformation ReferenceId="CreateAlternativeSecurityId"/>
+            <OutputClaimsTransformation ReferenceId="CreateSubjectClaimFromAlternativeSecurityId"/>
+          </OutputClaimsTransformations>
+          <UseTechnicalProfileForSessionManagement ReferenceId="SM-SocialLogin"/>
+        </TechnicalProfile>
+      </TechnicalProfiles>
+    </ClaimsProvider>
+    <ClaimsProvider>
+      <Domain>conduent.onmicrosoft</Domain>
+      <DisplayName>Login using Conduent login</DisplayName>
+      <TechnicalProfiles>
+        <TechnicalProfile Id="AADConduent-OpenIdConnect">
+          <DisplayName>Clinical Services Employee</DisplayName>
+          <Description>Login with your Conduent account</Description>
+          <Protocol Name="OpenIdConnect"/>
+          <Metadata>
+            <Item Key="METADATA">https://login.microsoftonline.com/1aed4588-b8ce-43a8-a775-989538fd30d8/v2.0/.well-known/openid-configuration</Item>
+            <Item Key="client_id">4dea137d-d29b-4908-9d66-3ea2ac868fd4</Item>
+            <Item Key="response_types">code</Item>
+            <Item Key="scope">openid profile user.read</Item>
+            <Item Key="response_mode">form_post</Item>
+            <Item Key="HttpBinding">POST</Item>
+            <Item Key="UsePolicyInRedirectUri">false</Item>
+          </Metadata>
+          <CryptographicKeys>
+            <Key Id="client_secret" StorageReferenceId="B2C_1A_ConduentAADSecret"/>
           </CryptographicKeys>
           <OutputClaims>
             <OutputClaim ClaimTypeReferenceId="issuerUserId" PartnerClaimType="oid"/>
@@ -111,6 +200,7 @@
       <OrchestrationSteps>
         <OrchestrationStep Order="1" Type="CombinedSignInAndSignUp" ContentDefinitionReferenceId="api.signuporsignin">
           <ClaimsProviderSelections>
+            <ClaimsProviderSelection TargetClaimsExchangeId="AzureADConduentServicesExchange" />
             <ClaimsProviderSelection TargetClaimsExchangeId="AzureADClinicalServicesExchange" />
             <ClaimsProviderSelection ValidationClaimsExchangeId="LocalAccountSigninEmailExchange" />
           </ClaimsProviderSelections>
@@ -126,6 +216,7 @@
             </Precondition>
           </Preconditions>
           <ClaimsExchanges>
+            <ClaimsExchange Id="AzureADConduentServicesExchange"  TechnicalProfileReferenceId="AADConduent-OpenIdConnect" />
             <ClaimsExchange Id="AzureADClinicalServicesExchange" TechnicalProfileReferenceId="AADClinicalServices-OpenIdConnect" />
             <ClaimsExchange Id="SignUpWithLogonEmailExchange" TechnicalProfileReferenceId="LocalAccountSignUpWithLogonEmail" />
           </ClaimsExchanges>
@@ -266,6 +357,83 @@
       </OrchestrationSteps>
       <ClientDefinition ReferenceId="DefaultWeb" />
     </UserJourney>
+    <UserJourney Id="ConduentADSignUpOrSignIn">
+      <OrchestrationSteps>
+        <OrchestrationStep Order="1" Type="CombinedSignInAndSignUp" ContentDefinitionReferenceId="api.signuporsignin">
+          <ClaimsProviderSelections>
+            <ClaimsProviderSelection TargetClaimsExchangeId="AzureADConduentExchange" />
+          </ClaimsProviderSelections>
+        </OrchestrationStep>
+        <OrchestrationStep Order="2" Type="ClaimsExchange">
+          <Preconditions>
+            <Precondition Type="ClaimsExist" ExecuteActionsIf="true">
+              <Value>objectId</Value>
+              <Action>SkipThisOrchestrationStep</Action>
+            </Precondition>
+          </Preconditions>
+          <ClaimsExchanges>
+            <ClaimsExchange Id="AzureADConduentExchange" TechnicalProfileReferenceId="AADConduent-OpenIdConnect" />
+          </ClaimsExchanges>
+        </OrchestrationStep>
+          <!-- For social IDP authentication, attempt to find the user account in the directory. -->
+        <OrchestrationStep Order="3" Type="ClaimsExchange">
+          <Preconditions>
+            <Precondition Type="ClaimEquals" ExecuteActionsIf="true">
+              <Value>authenticationSource</Value>
+              <Value>localAccountAuthentication</Value>
+              <Action>SkipThisOrchestrationStep</Action>
+            </Precondition>
+          </Preconditions>
+          <ClaimsExchanges>
+            <ClaimsExchange Id="AADUserReadUsingAlternativeSecurityId" TechnicalProfileReferenceId="AAD-UserReadUsingAlternativeSecurityId-NoError" />
+          </ClaimsExchanges>
+        </OrchestrationStep>
+        <!-- Show self-asserted page only if the directory does not have the user account already (i.e. we do not have an objectId). 
+          This can only happen when authentication happened using a social IDP. If local account was created or authentication done
+          using ESTS in step 2, then an user account must exist in the directory by this time. -->
+        <OrchestrationStep Order="4" Type="ClaimsExchange">
+          <Preconditions>
+            <Precondition Type="ClaimsExist" ExecuteActionsIf="true">
+              <Value>objectId</Value>
+              <Action>SkipThisOrchestrationStep</Action>
+            </Precondition>
+          </Preconditions>
+          <ClaimsExchanges>
+            <ClaimsExchange Id="SelfAsserted-Social" TechnicalProfileReferenceId="SelfAsserted-Social" />
+          </ClaimsExchanges>
+        </OrchestrationStep>
+        <!-- This step reads any user attributes that we may not have received when authenticating using ESTS so they can be sent 
+          in the token. -->
+        <OrchestrationStep Order="5" Type="ClaimsExchange">
+          <Preconditions>
+            <Precondition Type="ClaimEquals" ExecuteActionsIf="true">
+              <Value>authenticationSource</Value>
+              <Value>socialIdpAuthentication</Value>
+              <Action>SkipThisOrchestrationStep</Action>
+            </Precondition>
+          </Preconditions>
+          <ClaimsExchanges>
+            <ClaimsExchange Id="AADUserReadWithObjectId" TechnicalProfileReferenceId="AAD-UserReadUsingObjectId" />
+          </ClaimsExchanges>
+        </OrchestrationStep>
+        <!-- The previous step (SelfAsserted-Social) could have been skipped if there were no attributes to collect 
+             from the user. So, in that case, create the user in the directory if one does not already exist 
+             (verified using objectId which would be set from the last step if account was created in the directory. -->
+        <OrchestrationStep Order="6" Type="ClaimsExchange">
+          <Preconditions>
+            <Precondition Type="ClaimsExist" ExecuteActionsIf="true">
+              <Value>objectId</Value>
+              <Action>SkipThisOrchestrationStep</Action>
+            </Precondition>
+          </Preconditions>
+          <ClaimsExchanges>
+            <ClaimsExchange Id="AADUserWrite" TechnicalProfileReferenceId="AAD-UserWriteUsingAlternativeSecurityId" />
+          </ClaimsExchanges>
+        </OrchestrationStep>
+        <OrchestrationStep Order="7" Type="SendClaims" CpimIssuerTechnicalProfileReferenceId="JwtIssuer" />
+      </OrchestrationSteps>
+      <ClientDefinition ReferenceId="DefaultWeb" />
+    </UserJourney>
     <UserJourney Id="ProfileEdit">
       <OrchestrationSteps>
         <OrchestrationStep Order="1" Type="ClaimsProviderSelection" ContentDefinitionReferenceId="api.idpselections">
@@ -325,5 +493,26 @@
         <OrchestrationStep Order="3" Type="SendClaims" CpimIssuerTechnicalProfileReferenceId="JwtIssuer" />
       </OrchestrationSteps>
     </UserJourney>
+  <UserJourney Id="UserInfoJourney" DefaultCpimIssuerTechnicalProfileReferenceId="UserInfoIssuer">
+    <Authorization>
+      <AuthorizationTechnicalProfiles>
+        <AuthorizationTechnicalProfile ReferenceId="UserInfoAuthorization" />
+      </AuthorizationTechnicalProfiles>
+    </Authorization>
+    <OrchestrationSteps >
+      <OrchestrationStep Order="1" Type="ClaimsExchange">
+        <Preconditions>
+          <Precondition Type="ClaimsExist" ExecuteActionsIf="false">
+            <Value>objectId</Value>
+            <Action>SkipThisOrchestrationStep</Action>
+          </Precondition>
+        </Preconditions>
+        <ClaimsExchanges UserIdentity="false">
+          <ClaimsExchange Id="AADUserReadWithObjectId" TechnicalProfileReferenceId="AAD-UserReadUsingObjectId" />
+        </ClaimsExchanges>
+      </OrchestrationStep>
+      <OrchestrationStep Order="2" Type="SendClaims" CpimIssuerTechnicalProfileReferenceId="UserInfoIssuer" />
+    </OrchestrationSteps>
+  </UserJourney>
   </UserJourneys>
 </TrustFrameworkPolicy>
