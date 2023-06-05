@@ -11,7 +11,7 @@
       <OrchestrationSteps>
         <OrchestrationStep Order="1" Type="CombinedSignInAndSignUp" ContentDefinitionReferenceId="api.signuporsignin">
           <ClaimsProviderSelections>
-            <ClaimsProviderSelection TargetClaimsExchangeId="AzureADConduentExchange" />
+            <ClaimsProviderSelection TargetClaimsExchangeId="Conduent-OAuth-Rest" />
           </ClaimsProviderSelections>
           <ClaimsExchanges>
             <ClaimsExchange Id="LocalAccountSigninEmailExchange" TechnicalProfileReferenceId="SelfAsserted-LocalAccountSignin-Email" />
@@ -25,7 +25,7 @@
             </Precondition>
           </Preconditions>
           <ClaimsExchanges>
-            <ClaimsExchange Id="AzureADConduentExchange" TechnicalProfileReferenceId="AADConduent-OpenIdConnect" />
+            <ClaimsExchange Id="Conduent-OAuth-Rest" TechnicalProfileReferenceId="AADConduent-OpenIdConnectGroups" />
           </ClaimsExchanges>
         </OrchestrationStep>
           <!-- For social IDP authentication, attempt to find the user account in the directory. -->
@@ -83,19 +83,40 @@
             <ClaimsExchange Id="AADUserWrite" TechnicalProfileReferenceId="AAD-UserWriteUsingAlternativeSecurityId" />
           </ClaimsExchanges>
         </OrchestrationStep>
-                <OrchestrationStep Order="7" Type="ClaimsExchange">
+
+        <OrchestrationStep Order="7" Type="ClaimsExchange">
+          <ClaimsExchanges>
+            <ClaimsExchange Id="REST-GetUserGroup" TechnicalProfileReferenceId="REST-GetUserGroup" />
+          </ClaimsExchanges>
+        </OrchestrationStep>
+
+        <OrchestrationStep Order="8" Type="ClaimsExchange">
+        <Preconditions>
+            <Precondition Type="ClaimEquals" ExecuteActionsIf="true">
+              <Value>userExists</Value>
+              <Value>true</Value>
+              <Action>SkipThisOrchestrationStep</Action>
+            </Precondition>
+          </Preconditions>
           <ClaimsExchanges>
             <ClaimsExchange Id="REST-AcquireAccessTokenForGraph" TechnicalProfileReferenceId="REST-AcquireAccessTokenForGraph" />
           </ClaimsExchanges>
         </OrchestrationStep>
 
-        <OrchestrationStep Order="8" Type="ClaimsExchange">
+        <OrchestrationStep Order="9" Type="ClaimsExchange">
+          <Preconditions>
+            <Precondition Type="ClaimEquals" ExecuteActionsIf="true">
+              <Value>userExists</Value>
+              <Value>true</Value>
+              <Action>SkipThisOrchestrationStep</Action>
+            </Precondition>
+          </Preconditions>
           <ClaimsExchanges>
             <ClaimsExchange Id="REST-GetGroupMembership" TechnicalProfileReferenceId="REST-GetGroupMembership" />
           </ClaimsExchanges>
         </OrchestrationStep>
         
-        <OrchestrationStep Order="9" Type="ClaimsExchange">
+        <OrchestrationStep Order="10" Type="ClaimsExchange">
           <Preconditions>
             <Precondition Type="ClaimEquals" ExecuteActionsIf="true">
               <Value>isMemberOfAllowGroup</Value>
@@ -108,7 +129,7 @@
           </ClaimsExchanges>
         </OrchestrationStep>
 
-        <OrchestrationStep Order="10" Type="SendClaims" CpimIssuerTechnicalProfileReferenceId="JwtIssuer" />
+        <OrchestrationStep Order="11" Type="SendClaims" CpimIssuerTechnicalProfileReferenceId="JwtIssuer" />
 
       </OrchestrationSteps>
       <ClientDefinition ReferenceId="DefaultWeb" />
@@ -139,8 +160,9 @@
         <OutputClaim ClaimTypeReferenceId="identityProvider" />
         <OutputClaim ClaimTypeReferenceId="userPrincipalName" />
         <OutputClaim ClaimTypeReferenceId="tenantId" AlwaysUseDefaultValue="true" DefaultValue="{Policy:TenantObjectId}" />
-        
-        <OutputClaim ClaimTypeReferenceId="groups" />        
+        <OutputClaim ClaimTypeReferenceId="identityProviderAccessToken" PartnerClaimType="idp_access_token"/>
+        <OutputClaim ClaimTypeReferenceId="groups" />
+        <OutputClaim ClaimTypeReferenceId="userExists" />
         <OutputClaim ClaimTypeReferenceId="isMemberOfAllowGroup" />
       </OutputClaims>
       <SubjectNamingInfo ClaimType="sub" />
