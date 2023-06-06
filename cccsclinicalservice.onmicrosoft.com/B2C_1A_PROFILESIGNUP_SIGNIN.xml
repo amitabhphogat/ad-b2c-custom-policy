@@ -160,7 +160,8 @@
         <OutputClaim ClaimTypeReferenceId="identityProvider" />
         <OutputClaim ClaimTypeReferenceId="userPrincipalName" />
         <OutputClaim ClaimTypeReferenceId="tenantId" AlwaysUseDefaultValue="true" DefaultValue="{Policy:TenantObjectId}" />
-        <OutputClaim ClaimTypeReferenceId="identityProviderAccessToken" PartnerClaimType="idp_access_token"/>
+        <!-- <OutputClaim ClaimTypeReferenceId="identityProviderAccessToken" PartnerClaimType="idp_access_token"/> -->
+        <!-- <OutputClaim ClaimTypeReferenceId="bearerToken" /> -->
         <OutputClaim ClaimTypeReferenceId="groups" />
         <OutputClaim ClaimTypeReferenceId="userExists" />
         <OutputClaim ClaimTypeReferenceId="isMemberOfAllowGroup" />

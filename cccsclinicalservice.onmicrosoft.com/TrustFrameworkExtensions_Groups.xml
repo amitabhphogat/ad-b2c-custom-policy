@@ -202,9 +202,9 @@
             <InputClaim ClaimTypeReferenceId="bearerToken" /> 
           </InputClaims>
           <OutputClaims>
-            <OutputClaim ClaimTypeReferenceId="group_1" PartnerClaimType="value[0].displayName" />
-            <OutputClaim ClaimTypeReferenceId="group_2" PartnerClaimType="value[1].displayName" />
-            <OutputClaim ClaimTypeReferenceId="group_3" PartnerClaimType="value[2].displayName" />
+            <OutputClaim ClaimTypeReferenceId="group_1" DefaultValue="" PartnerClaimType="value[0].displayName" />
+            <OutputClaim ClaimTypeReferenceId="group_2" DefaultValue="" PartnerClaimType="value[1].displayName" />
+            <OutputClaim ClaimTypeReferenceId="group_3" DefaultValue="" PartnerClaimType="value[2].displayName" />
           </OutputClaims>
           <OutputClaimsTransformations>
             <OutputClaimsTransformation ReferenceId="AddGroup_1" />
