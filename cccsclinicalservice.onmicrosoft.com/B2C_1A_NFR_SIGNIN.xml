@@ -1,0 +1,45 @@
+<TrustFrameworkPolicy xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://schemas.microsoft.com/online/cpim/schemas/2013/06"
+  PolicySchemaVersion="0.3.0.0" TenantId="cccsclinicalservice.onmicrosoft.com" PolicyId="B2C_1A_NFR_signin" PublicPolicyUri="http://cccsclinicalservice.onmicrosoft.com/B2C_1A_NFR_signin" 
+  TenantObjectId="ca26b7de-b9aa-41f9-a85a-b3c70b9c1a70" DeploymentMode="Development" UserJourneyRecorderEndpoint="urn:journeyrecorder:applicationinsights">
+  <BasePolicy>
+    <TenantId>cccsclinicalservice.onmicrosoft.com</TenantId>
+    <PolicyId>B2C_1A_TrustFrameworkExtensions_RBAC</PolicyId>
+  </BasePolicy>
+  <RelyingParty>
+    <DefaultUserJourney ReferenceId="ConduentADSignInRBAC" />
+    <Endpoints>
+      <!--points to refresh token journey when app makes refresh token request-->
+      <Endpoint Id="UserInfo" UserJourneyReferenceId="UserInfoJourney" />
+    </Endpoints>
+    <UserJourneyBehaviors>
+      <SingleSignOn Scope="Application" />
+      <SessionExpiryType>Rolling</SessionExpiryType>
+      <SessionExpiryInSeconds>900</SessionExpiryInSeconds>
+      <JourneyInsights TelemetryEngine="ApplicationInsights" ClientEnabled="false" InstrumentationKey="275eacac-6cc2-4ec2-93dc-2cf4b6720c2e" DeveloperMode="true" ServerEnabled="true" TelemetryVersion="1.0.0" />
+    </UserJourneyBehaviors>
+    <TechnicalProfile Id="PolicyProfile">
+      <DisplayName>PolicyProfile</DisplayName>
+      <Protocol Name="OpenIdConnect" />
+      <InputClaims>
+        <InputClaim ClaimTypeReferenceId="role" DefaultValue="Admin" Required="true"></InputClaim>
+      </InputClaims>
+      <OutputClaims>
+        <OutputClaim ClaimTypeReferenceId="displayName" />
+        <OutputClaim ClaimTypeReferenceId="givenName" />
+        <OutputClaim ClaimTypeReferenceId="surname" />
+        <OutputClaim ClaimTypeReferenceId="email" DefaultValue="no@email.com"  />
+        <OutputClaim ClaimTypeReferenceId="objectId" PartnerClaimType="sub" />
+        <OutputClaim ClaimTypeReferenceId="identityProvider" />
+        <OutputClaim ClaimTypeReferenceId="userPrincipalName" />
+        <OutputClaim ClaimTypeReferenceId="tenantId" AlwaysUseDefaultValue="true" DefaultValue="{Policy:TenantObjectId}" />
+        <!-- <OutputClaim ClaimTypeReferenceId="identityProviderAccessToken" PartnerClaimType="idp_access_token"/> -->
+        <!-- <OutputClaim ClaimTypeReferenceId="bearerToken" /> -->
+        <OutputClaim ClaimTypeReferenceId="identityProviders"/>
+        <OutputClaim ClaimTypeReferenceId="groups" />
+        <OutputClaim ClaimTypeReferenceId="userExists" />
+        <OutputClaim ClaimTypeReferenceId="isMemberOfAllowGroup" />
+      </OutputClaims>
+      <SubjectNamingInfo ClaimType="sub" />
+    </TechnicalProfile>
+  </RelyingParty>
+</TrustFrameworkPolicy>
