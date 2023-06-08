@@ -60,6 +60,10 @@
         <DisplayName>Group 3</DisplayName>
         <DataType>string</DataType>
       </ClaimType>
+      <ClaimType Id="roles">
+        <DisplayName>User's assigned Roles</DisplayName>
+        <DataType>string</DataType>
+      </ClaimType>
        <ClaimType Id="role">
         <DisplayName>Role to Check</DisplayName>
         <DataType>string</DataType>
@@ -188,6 +192,17 @@
               <OutputClaim ClaimTypeReferenceId="identityProviders" TransformationClaimType="collection" />
           </OutputClaims>
       </ClaimsTransformation>
+      <ClaimsTransformation Id="ConvertRolesStringCollectionToCommaDelimiterString" TransformationMethod="StringJoin">
+        <InputClaims>
+        <InputClaim ClaimTypeReferenceId="groups" TransformationClaimType="inputClaim" />
+        </InputClaims>
+        <InputParameters>
+          <InputParameter DataType="string" Id="delimiter" Value="," />
+        </InputParameters>
+        <OutputClaims>
+          <OutputClaim ClaimTypeReferenceId="roles" TransformationClaimType="outputClaim" />
+        </OutputClaims>
+      </ClaimsTransformation>
     </ClaimsTransformations>
   </BuildingBlocks>
 
@@ -296,6 +311,7 @@
             <OutputClaimsTransformation ReferenceId="AddGroup_2" />
             <OutputClaimsTransformation ReferenceId="AddGroup_3" />
             <OutputClaimsTransformation ReferenceId="CheckIfMemberOfAllowGroup" />
+            <OutputClaimsTransformation ReferenceId="ConvertRolesStringCollectionToCommaDelimiterString" />
           </OutputClaimsTransformations>
           <UseTechnicalProfileForSessionManagement ReferenceId="SM-Noop" />
         </TechnicalProfile>
@@ -342,6 +358,7 @@
           </OutputClaims>
           <OutputClaimsTransformations>
             <OutputClaimsTransformation ReferenceId="CheckIfMemberOfAllowGroup" />
+            <OutputClaimsTransformation ReferenceId="ConvertRolesStringCollectionToCommaDelimiterString" />
           </OutputClaimsTransformations>
           <UseTechnicalProfileForSessionManagement ReferenceId="SM-Noop" />
         </TechnicalProfile>

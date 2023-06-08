@@ -31,13 +31,13 @@
         <OutputClaim ClaimTypeReferenceId="objectId" PartnerClaimType="sub" />
         <OutputClaim ClaimTypeReferenceId="identityProvider" />
         <OutputClaim ClaimTypeReferenceId="userPrincipalName" />
-        <OutputClaim ClaimTypeReferenceId="tenantId" AlwaysUseDefaultValue="true" DefaultValue="{Policy:TenantObjectId}" />
-        <!-- <OutputClaim ClaimTypeReferenceId="identityProviderAccessToken" PartnerClaimType="idp_access_token"/> -->
-        <!-- <OutputClaim ClaimTypeReferenceId="bearerToken" /> -->
+        <!--<OutputClaim ClaimTypeReferenceId="tenantId" AlwaysUseDefaultValue="true" DefaultValue="{Policy:TenantObjectId}" />
+        <OutputClaim ClaimTypeReferenceId="identityProviderAccessToken" PartnerClaimType="idp_access_token"/>
+        <OutputClaim ClaimTypeReferenceId="bearerToken" />
+        <OutputClaim ClaimTypeReferenceId="userExists" /> -->
         <OutputClaim ClaimTypeReferenceId="identityProviders"/>
-        <OutputClaim ClaimTypeReferenceId="groups" />
-        <OutputClaim ClaimTypeReferenceId="userExists" />
         <OutputClaim ClaimTypeReferenceId="isMemberOfAllowGroup" />
+        <OutputClaim ClaimTypeReferenceId="roles" />
       </OutputClaims>
       <SubjectNamingInfo ClaimType="sub" />
     </TechnicalProfile>
