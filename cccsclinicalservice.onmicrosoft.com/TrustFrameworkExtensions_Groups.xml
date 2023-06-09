@@ -44,10 +44,6 @@
           <DataType>string</DataType>
           <UserHelpText/>
       </ClaimType>
-      <ClaimType Id="groups">
-        <DisplayName>Collection of group membership IDs</DisplayName>
-        <DataType>stringCollection</DataType>
-      </ClaimType>
       <ClaimType Id="group_1">
         <DisplayName>Group 1</DisplayName>
         <DataType>string</DataType>
@@ -62,7 +58,7 @@
       </ClaimType>
       <ClaimType Id="roles">
         <DisplayName>User's assigned Roles</DisplayName>
-        <DataType>string</DataType>
+        <DataType>stringCollection</DataType>
       </ClaimType>
        <ClaimType Id="role">
         <DisplayName>Role to Check</DisplayName>
@@ -72,8 +68,8 @@
         <DisplayName>User Exists in Clinical Service Identity system</DisplayName>
         <DataType>boolean</DataType>
       </ClaimType>
-      <ClaimType Id="isMemberOfAllowGroup">
-      	<DisplayName>isMemberOfAllowGroup</DisplayName>
+      <ClaimType Id="isMemberOfAllowRole">
+      	<DisplayName>isMemberOfAllowRole</DisplayName>
       	<DataType>boolean</DataType>
       </ClaimType>
       <ClaimType Id="identityProviderAccessToken">
@@ -108,43 +104,43 @@
       <ClaimsTransformation Id="AddGroup_1" TransformationMethod="AddItemToStringCollection">
         <InputClaims>
           <InputClaim ClaimTypeReferenceId="group_1" TransformationClaimType="item" />
-          <InputClaim ClaimTypeReferenceId="groups" TransformationClaimType="collection" />
+          <InputClaim ClaimTypeReferenceId="roles" TransformationClaimType="collection" />
         </InputClaims>
         <OutputClaims>
-          <OutputClaim ClaimTypeReferenceId="groups" TransformationClaimType="collection" />
+          <OutputClaim ClaimTypeReferenceId="roles" TransformationClaimType="collection" />
         </OutputClaims>
       </ClaimsTransformation>
 
       <ClaimsTransformation Id="AddGroup_2" TransformationMethod="AddItemToStringCollection">
         <InputClaims>
           <InputClaim ClaimTypeReferenceId="group_2" TransformationClaimType="item" />
-          <InputClaim ClaimTypeReferenceId="groups" TransformationClaimType="collection" />
+          <InputClaim ClaimTypeReferenceId="roles" TransformationClaimType="collection" />
         </InputClaims>
         <OutputClaims>
-          <OutputClaim ClaimTypeReferenceId="groups" TransformationClaimType="collection" />
+          <OutputClaim ClaimTypeReferenceId="roles" TransformationClaimType="collection" />
         </OutputClaims>
       </ClaimsTransformation>
 
       <ClaimsTransformation Id="AddGroup_3" TransformationMethod="AddItemToStringCollection">
         <InputClaims>
           <InputClaim ClaimTypeReferenceId="group_3" TransformationClaimType="item" />
-          <InputClaim ClaimTypeReferenceId="groups" TransformationClaimType="collection" />
+          <InputClaim ClaimTypeReferenceId="roles" TransformationClaimType="collection" />
         </InputClaims>
         <OutputClaims>
-          <OutputClaim ClaimTypeReferenceId="groups" TransformationClaimType="collection" />
+          <OutputClaim ClaimTypeReferenceId="roles" TransformationClaimType="collection" />
         </OutputClaims>
       </ClaimsTransformation>
 
-      <ClaimsTransformation Id="CheckIfMemberOfAllowGroup" TransformationMethod="StringCollectionContainsClaim">
+      <ClaimsTransformation Id="CheckIfMemberOfAllowRole" TransformationMethod="StringCollectionContainsClaim">
         <InputClaims>
-          <InputClaim ClaimTypeReferenceId="groups" TransformationClaimType="collection"/>
+          <InputClaim ClaimTypeReferenceId="roles" TransformationClaimType="collection"/>
           <InputClaim ClaimTypeReferenceId="role" TransformationClaimType="item" />
         </InputClaims>
         <InputParameters>
           <InputParameter  Id="ignoreCase" DataType="string" Value="true"/>
         </InputParameters>
         <OutputClaims>
-          <OutputClaim ClaimTypeReferenceId="isMemberOfAllowGroup" TransformationClaimType="outputClaim"/>
+          <OutputClaim ClaimTypeReferenceId="isMemberOfAllowRole" TransformationClaimType="outputClaim"/>
         </OutputClaims>
       </ClaimsTransformation>
       <!--Demo: Gets the domain portion of the sign-in email address-->
@@ -191,17 +187,6 @@
           <OutputClaims>
               <OutputClaim ClaimTypeReferenceId="identityProviders" TransformationClaimType="collection" />
           </OutputClaims>
-      </ClaimsTransformation>
-      <ClaimsTransformation Id="ConvertRolesStringCollectionToCommaDelimiterString" TransformationMethod="StringJoin">
-        <InputClaims>
-        <InputClaim ClaimTypeReferenceId="groups" TransformationClaimType="inputClaim" />
-        </InputClaims>
-        <InputParameters>
-          <InputParameter DataType="string" Id="delimiter" Value="," />
-        </InputParameters>
-        <OutputClaims>
-          <OutputClaim ClaimTypeReferenceId="roles" TransformationClaimType="outputClaim" />
-        </OutputClaims>
       </ClaimsTransformation>
     </ClaimsTransformations>
   </BuildingBlocks>
@@ -310,8 +295,7 @@
             <OutputClaimsTransformation ReferenceId="AddGroup_1" />
             <OutputClaimsTransformation ReferenceId="AddGroup_2" />
             <OutputClaimsTransformation ReferenceId="AddGroup_3" />
-            <OutputClaimsTransformation ReferenceId="CheckIfMemberOfAllowGroup" />
-            <OutputClaimsTransformation ReferenceId="ConvertRolesStringCollectionToCommaDelimiterString" />
+            <OutputClaimsTransformation ReferenceId="CheckIfMemberOfAllowRole" />
           </OutputClaimsTransformations>
           <UseTechnicalProfileForSessionManagement ReferenceId="SM-Noop" />
         </TechnicalProfile>
@@ -341,7 +325,7 @@
           <Protocol Name="Proprietary" Handler="Web.TPEngine.Providers.RestfulProvider, Web.TPEngine, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" />
           <Metadata>
             <!-- Set the ServiceUrl with your own REST API endpoint -->
-            <Item Key="ServiceUrl">https://clinical-api-dev.services.conduent.com/Management/api/users/groups</Item>
+            <Item Key="ServiceUrl">https://clinical-api-dev.services.conduent.com/Management/api/users/roles</Item>
             <Item Key="SendClaimsIn">Url</Item>
             <Item Key="AuthenticationType">Bearer</Item>
             <Item Key="UseClaimAsBearerToken">identityProviderAccessToken</Item>
@@ -354,11 +338,10 @@
           </InputClaims>
            <OutputClaims>
             <OutputClaim ClaimTypeReferenceId="userExists" DefaultValue="false" />
-            <OutputClaim ClaimTypeReferenceId="groups" />
+            <OutputClaim ClaimTypeReferenceId="roles" />
           </OutputClaims>
           <OutputClaimsTransformations>
-            <OutputClaimsTransformation ReferenceId="CheckIfMemberOfAllowGroup" />
-            <OutputClaimsTransformation ReferenceId="ConvertRolesStringCollectionToCommaDelimiterString" />
+            <OutputClaimsTransformation ReferenceId="CheckIfMemberOfAllowRole" />
           </OutputClaimsTransformations>
           <UseTechnicalProfileForSessionManagement ReferenceId="SM-Noop" />
         </TechnicalProfile>
@@ -562,7 +545,7 @@
         <OrchestrationStep Order="12" Type="ClaimsExchange">
           <Preconditions>
             <Precondition Type="ClaimEquals" ExecuteActionsIf="true">
-              <Value>isMemberOfAllowGroup</Value>
+              <Value>isMemberOfAllowRole</Value>
               <Value>True</Value>
               <Action>SkipThisOrchestrationStep</Action>
             </Precondition>
