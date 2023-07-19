@@ -1,5 +1,5 @@
 <TrustFrameworkPolicy xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://schemas.microsoft.com/online/cpim/schemas/2013/06"
-  PolicySchemaVersion="0.3.0.0" TenantId="cccsclinicalservice.onmicrosoft.com" PolicyId="B2C_1A_NFR_signin" PublicPolicyUri="http://cccsclinicalservice.onmicrosoft.com/B2C_1A_NFR_signin" 
+  PolicySchemaVersion="0.3.0.0" TenantId="cccsclinicalservice.onmicrosoft.com" PolicyId="B2C_1A_NFR_Admin" PublicPolicyUri="http://cccsclinicalservice.onmicrosoft.com/B2C_1A_NFR_signin" 
   TenantObjectId="ca26b7de-b9aa-41f9-a85a-b3c70b9c1a70" DeploymentMode="Development" UserJourneyRecorderEndpoint="urn:journeyrecorder:applicationinsights">
   <BasePolicy>
     <TenantId>cccsclinicalservice.onmicrosoft.com</TenantId>
@@ -21,8 +21,8 @@
       <DisplayName>PolicyProfile</DisplayName>
       <Protocol Name="OpenIdConnect" />
       <InputClaims>
-        <InputClaim ClaimTypeReferenceId="AdminPortal" DefaultValue="false" AlwaysUseDefaultValue="true" Required="true"></InputClaim>
-        <InputClaim ClaimTypeReferenceId="NursePortal" DefaultValue="true" AlwaysUseDefaultValue="true" Required="true"></InputClaim>
+        <InputClaim ClaimTypeReferenceId="AdminPortal" DefaultValue="true" AlwaysUseDefaultValue="true" Required="true"></InputClaim>
+        <InputClaim ClaimTypeReferenceId="NursePortal" DefaultValue="false" AlwaysUseDefaultValue="true" Required="true"></InputClaim>
       </InputClaims>
       <OutputClaims>
         <OutputClaim ClaimTypeReferenceId="displayName" />

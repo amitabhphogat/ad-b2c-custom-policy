@@ -60,13 +60,37 @@
         <DisplayName>User's assigned Roles</DisplayName>
         <DataType>stringCollection</DataType>
       </ClaimType>
-       <ClaimType Id="role">
-        <DisplayName>Role to Check</DisplayName>
-        <DataType>string</DataType>
-      </ClaimType>
       <ClaimType Id="userExists">
         <DisplayName>User Exists in Clinical Service Identity system</DisplayName>
         <DataType>boolean</DataType>
+      </ClaimType>
+      <ClaimType Id="NursePortal">
+      	<DisplayName>NursePortal</DisplayName>
+      	<DataType>boolean</DataType>
+      </ClaimType>
+      <ClaimType Id="AdminPortal">
+      	<DisplayName>AdminPortal</DisplayName>
+      	<DataType>boolean</DataType>
+      </ClaimType>
+      <ClaimType Id="isNurse">
+      	<DisplayName>IsNurse</DisplayName>
+      	<DataType>boolean</DataType>
+      </ClaimType>
+      <ClaimType Id="isSupervisor">
+      	<DisplayName>IsNurse</DisplayName>
+      	<DataType>boolean</DataType>
+      </ClaimType>
+      <ClaimType Id="isAdmin">
+      	<DisplayName>IsNurse</DisplayName>
+      	<DataType>boolean</DataType>
+      </ClaimType>
+      <ClaimType Id="isMemberOfAllowedAdminPortal">
+      	<DisplayName>isMemberOfAllowRole</DisplayName>
+      	<DataType>boolean</DataType>
+      </ClaimType>
+      <ClaimType Id="isMemberOfAllowedNursePortal">
+      	<DisplayName>isMemberOfAllowRole</DisplayName>
+      	<DataType>boolean</DataType>
       </ClaimType>
       <ClaimType Id="isMemberOfAllowRole">
       	<DisplayName>isMemberOfAllowRole</DisplayName>
@@ -130,15 +154,74 @@
           <OutputClaim ClaimTypeReferenceId="roles" TransformationClaimType="collection" />
         </OutputClaims>
       </ClaimsTransformation>
-
-      <ClaimsTransformation Id="CheckIfMemberOfAllowRole" TransformationMethod="StringCollectionContainsClaim">
+      <ClaimsTransformation Id="HasNurseRole" TransformationMethod="StringCollectionContains">
         <InputClaims>
-          <InputClaim ClaimTypeReferenceId="roles" TransformationClaimType="collection"/>
-          <InputClaim ClaimTypeReferenceId="role" TransformationClaimType="item" />
+          <InputClaim ClaimTypeReferenceId="roles" TransformationClaimType="inputClaim"/>
         </InputClaims>
         <InputParameters>
+          <InputParameter  Id="item" DataType="string" Value="Nurse"/>
           <InputParameter  Id="ignoreCase" DataType="string" Value="true"/>
         </InputParameters>
+        <OutputClaims>
+          <OutputClaim ClaimTypeReferenceId="isNurse" TransformationClaimType="outputClaim"/>
+        </OutputClaims>
+      </ClaimsTransformation>
+      <ClaimsTransformation Id="HasSupervisorRole" TransformationMethod="StringCollectionContains">
+        <InputClaims>
+          <InputClaim ClaimTypeReferenceId="roles" TransformationClaimType="inputClaim"/>
+        </InputClaims>
+        <InputParameters>
+          <InputParameter  Id="item" DataType="string" Value="Supervisor"/>
+          <InputParameter  Id="ignoreCase" DataType="string" Value="true"/>
+        </InputParameters>
+        <OutputClaims>
+          <OutputClaim ClaimTypeReferenceId="isSupervisor" TransformationClaimType="outputClaim"/>
+        </OutputClaims>
+      </ClaimsTransformation>
+      <ClaimsTransformation Id="HasAdminRole" TransformationMethod="StringCollectionContains">
+        <InputClaims>
+          <InputClaim ClaimTypeReferenceId="roles" TransformationClaimType="inputClaim"/>
+        </InputClaims>
+        <InputParameters>
+          <InputParameter  Id="item" DataType="string" Value="Admin"/>
+          <InputParameter  Id="ignoreCase" DataType="string" Value="true"/>
+        </InputParameters>
+        <OutputClaims>
+          <OutputClaim ClaimTypeReferenceId="isAdmin" TransformationClaimType="outputClaim"/>
+        </OutputClaims>
+      </ClaimsTransformation>
+      <ClaimsTransformation Id="AdminPortalAllowed" TransformationMethod="AndClaims">
+        <InputClaims>
+          <InputClaim ClaimTypeReferenceId="AdminPortal" TransformationClaimType="inputClaim1" />
+          <InputClaim ClaimTypeReferenceId="isAdmin" TransformationClaimType="inputClaim2" />
+        </InputClaims>
+        <OutputClaims>
+          <OutputClaim ClaimTypeReferenceId="isMemberOfAllowedAdminPortal" TransformationClaimType="outputClaim" />
+        </OutputClaims>
+      </ClaimsTransformation>
+       <ClaimsTransformation Id="HasAgentRole" TransformationMethod="OrClaims">
+        <InputClaims>
+          <InputClaim ClaimTypeReferenceId="isNurse" TransformationClaimType="inputClaim1" />
+          <InputClaim ClaimTypeReferenceId="isSupervisor" TransformationClaimType="inputClaim2" />
+        </InputClaims>
+        <OutputClaims>
+          <OutputClaim ClaimTypeReferenceId="isMemberOfAllowedNursePortal" TransformationClaimType="outputClaim" />
+        </OutputClaims>
+      </ClaimsTransformation>
+      <ClaimsTransformation Id="NursePortalAllowed" TransformationMethod="AndClaims">
+        <InputClaims>
+          <InputClaim ClaimTypeReferenceId="NursePortal" TransformationClaimType="inputClaim1" />
+          <InputClaim ClaimTypeReferenceId="isMemberOfAllowedNursePortal" TransformationClaimType="inputClaim2" />
+        </InputClaims>
+        <OutputClaims>
+          <OutputClaim ClaimTypeReferenceId="isMemberOfAllowedNursePortal" TransformationClaimType="outputClaim" />
+        </OutputClaims>
+      </ClaimsTransformation>
+       <ClaimsTransformation Id="CheckIfMemberOfAllowRole" TransformationMethod="OrClaims">
+        <InputClaims>
+          <InputClaim ClaimTypeReferenceId="isMemberOfAllowedNursePortal" TransformationClaimType="inputClaim1"/>
+          <InputClaim ClaimTypeReferenceId="isMemberOfAllowedAdminPortal" TransformationClaimType="inputClaim2" />
+        </InputClaims>
         <OutputClaims>
           <OutputClaim ClaimTypeReferenceId="isMemberOfAllowRole" TransformationClaimType="outputClaim"/>
         </OutputClaims>
@@ -295,6 +378,12 @@
             <OutputClaimsTransformation ReferenceId="AddGroup_1" />
             <OutputClaimsTransformation ReferenceId="AddGroup_2" />
             <OutputClaimsTransformation ReferenceId="AddGroup_3" />
+            <OutputClaimsTransformation ReferenceId="HasNurseRole" />
+            <OutputClaimsTransformation ReferenceId="HasSupervisorRole" />
+            <OutputClaimsTransformation ReferenceId="HasAdminRole" />
+            <OutputClaimsTransformation ReferenceId="HasAgentRole" />
+            <OutputClaimsTransformation ReferenceId="AdminPortalAllowed" />
+            <OutputClaimsTransformation ReferenceId="NursePortalAllowed" />
             <OutputClaimsTransformation ReferenceId="CheckIfMemberOfAllowRole" />
           </OutputClaimsTransformations>
           <UseTechnicalProfileForSessionManagement ReferenceId="SM-Noop" />
@@ -341,6 +430,12 @@
             <OutputClaim ClaimTypeReferenceId="roles" />
           </OutputClaims>
           <OutputClaimsTransformations>
+            <OutputClaimsTransformation ReferenceId="HasNurseRole" />
+            <OutputClaimsTransformation ReferenceId="HasSupervisorRole" />
+            <OutputClaimsTransformation ReferenceId="HasAdminRole" />
+            <OutputClaimsTransformation ReferenceId="HasAgentRole" />
+            <OutputClaimsTransformation ReferenceId="AdminPortalAllowed" />
+            <OutputClaimsTransformation ReferenceId="NursePortalAllowed" />
             <OutputClaimsTransformation ReferenceId="CheckIfMemberOfAllowRole" />
           </OutputClaimsTransformations>
           <UseTechnicalProfileForSessionManagement ReferenceId="SM-Noop" />
@@ -542,7 +637,7 @@
           </ClaimsExchanges>
         </OrchestrationStep>
         
-        <OrchestrationStep Order="12" Type="ClaimsExchange">
+        <!-- <OrchestrationStep Order="12" Type="ClaimsExchange">
           <Preconditions>
             <Precondition Type="ClaimEquals" ExecuteActionsIf="true">
               <Value>isMemberOfAllowRole</Value>
@@ -553,12 +648,12 @@
           <ClaimsExchanges>
             <ClaimsExchange Id="ShowBlockPage" TechnicalProfileReferenceId="ShowBlockPage" />
           </ClaimsExchanges>
-        </OrchestrationStep>
+        </OrchestrationStep> -->
 
         <!-- The previous step (SelfAsserted-Social) could have been skipped if there were no attributes to collect 
              from the user. So, in that case, create the user in the directory if one does not already exist 
              (verified using objectId which would be set from the last step if account was created in the directory. -->
-        <OrchestrationStep Order="13" Type="ClaimsExchange">
+        <OrchestrationStep Order="12" Type="ClaimsExchange">
           <Preconditions>
             <Precondition Type="ClaimsExist" ExecuteActionsIf="true">
               <Value>objectId</Value>
@@ -569,7 +664,7 @@
             <ClaimsExchange Id="AADUserWrite" TechnicalProfileReferenceId="AAD-UserWriteUsingAlternativeSecurityId" />
           </ClaimsExchanges>
         </OrchestrationStep>
-        <OrchestrationStep Order="14" Type="SendClaims" CpimIssuerTechnicalProfileReferenceId="JwtIssuer" />
+        <OrchestrationStep Order="13" Type="SendClaims" CpimIssuerTechnicalProfileReferenceId="JwtIssuer" />
 
       </OrchestrationSteps>
       <ClientDefinition ReferenceId="DefaultWeb" />
