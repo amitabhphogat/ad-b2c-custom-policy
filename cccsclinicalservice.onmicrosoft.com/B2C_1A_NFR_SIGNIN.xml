@@ -21,8 +21,8 @@
       <DisplayName>PolicyProfile</DisplayName>
       <Protocol Name="OpenIdConnect" />
       <InputClaims>
-        <InputClaim ClaimTypeReferenceId="AdminPortal" DefaultValue="false" AlwaysUseDefaultValue="true" Required="true"></InputClaim>
-        <InputClaim ClaimTypeReferenceId="NursePortal" DefaultValue="true" AlwaysUseDefaultValue="true" Required="true"></InputClaim>
+        <InputClaim ClaimTypeReferenceId="AdminPortal" DefaultValue="true" Required="true"></InputClaim>
+        <InputClaim ClaimTypeReferenceId="NursePortal" DefaultValue="true" Required="true"></InputClaim>
       </InputClaims>
       <OutputClaims>
         <OutputClaim ClaimTypeReferenceId="displayName" />

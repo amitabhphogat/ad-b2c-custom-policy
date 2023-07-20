@@ -409,6 +409,37 @@
     <ClaimsProvider>
       <DisplayName>Clinical Management API</DisplayName>
       <TechnicalProfiles>
+        <TechnicalProfile Id="REST-GetUserGroupWithAPIKey">
+          <DisplayName>Get User Profile</DisplayName>
+          <Protocol Name="Proprietary" Handler="Web.TPEngine.Providers.RestfulProvider, Web.TPEngine, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" />
+          <Metadata>
+            <!-- Set the ServiceUrl with your own REST API endpoint -->
+            <Item Key="ServiceUrl">https://clinical-api-dev.services.conduent.com/profile/api/profile/{email}</Item>
+            <Item Key="SendClaimsIn">Header</Item>
+            <Item Key="AuthenticationType">ApiKeyHeader</Item>
+            <Item Key="AllowInsecureAuthInProduction">false</Item>
+          </Metadata>
+          <CryptographicKeys>
+            <Key Id="Ocp-Apim-Subscription-Key" StorageReferenceId="B2C_1A_RestApiKey" />
+          </CryptographicKeys>
+          <InputClaims>
+            <InputClaim ClaimTypeReferenceId="email" />
+          </InputClaims>
+           <OutputClaims>
+            <OutputClaim ClaimTypeReferenceId="userExists" DefaultValue="false" />
+            <OutputClaim ClaimTypeReferenceId="roles" />
+          </OutputClaims>
+          <OutputClaimsTransformations>
+            <OutputClaimsTransformation ReferenceId="HasNurseRole" />
+            <OutputClaimsTransformation ReferenceId="HasSupervisorRole" />
+            <OutputClaimsTransformation ReferenceId="HasAdminRole" />
+            <OutputClaimsTransformation ReferenceId="HasAgentRole" />
+            <OutputClaimsTransformation ReferenceId="AdminPortalAllowed" />
+            <OutputClaimsTransformation ReferenceId="NursePortalAllowed" />
+            <OutputClaimsTransformation ReferenceId="CheckIfMemberOfAllowRole" />
+          </OutputClaimsTransformations>
+          <UseTechnicalProfileForSessionManagement ReferenceId="SM-Noop" />
+        </TechnicalProfile>
         <TechnicalProfile Id="REST-GetUserGroup">
           <DisplayName>Check loyaltyId Azure Function web hook</DisplayName>
           <Protocol Name="Proprietary" Handler="Web.TPEngine.Providers.RestfulProvider, Web.TPEngine, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" />
@@ -607,7 +638,7 @@
 
         <OrchestrationStep Order="9" Type="ClaimsExchange">
           <ClaimsExchanges>
-            <ClaimsExchange Id="REST-GetUserGroup" TechnicalProfileReferenceId="REST-GetUserGroup" />
+            <ClaimsExchange Id="REST-GetUserGroupWithAPIKey" TechnicalProfileReferenceId="REST-GetUserGroupWithAPIKey" />
           </ClaimsExchanges>
         </OrchestrationStep>
 
@@ -665,6 +696,169 @@
           </ClaimsExchanges>
         </OrchestrationStep>
         <OrchestrationStep Order="13" Type="SendClaims" CpimIssuerTechnicalProfileReferenceId="JwtIssuer" />
+
+      </OrchestrationSteps>
+      <ClientDefinition ReferenceId="DefaultWeb" />
+    </UserJourney>
+    <UserJourney Id="ConduentADSignInRBACTest">
+      <OrchestrationSteps>
+        <OrchestrationStep Order="1" Type="ClaimsExchange">
+          <ClaimsExchanges>
+			      <ClaimsExchange Id="SigninEmailExchange" TechnicalProfileReferenceId="SelfAsserted-Signin-Email" />
+          </ClaimsExchanges>
+        </OrchestrationStep>
+        <OrchestrationStep Order="2" Type="ClaimsExchange">
+          <ClaimsExchanges>
+              <ClaimsExchange Id="ParseDomainHintLogic" TechnicalProfileReferenceId="HRDLogic" />
+          </ClaimsExchanges>
+        </OrchestrationStep>        
+        <!-- If the domain_hint did not match any known domain, then redirect to a Error Page-->
+        <OrchestrationStep Order="3" Type="ClaimsExchange">
+            <Preconditions>
+                <Precondition Type="ClaimEquals" ExecuteActionsIf="true">
+                    <Value>isKnownCustomer</Value>
+                    <Value>True</Value>
+                    <Action>SkipThisOrchestrationStep</Action>
+                </Precondition>
+            </Preconditions>
+            <ClaimsExchanges>
+              <ClaimsExchange Id="NotAutorizedDomain" TechnicalProfileReferenceId="ShowBlockPage" />
+            </ClaimsExchanges>
+        </OrchestrationStep>
+        <!-- If the domain matched any known domain, then this step will have a single IdP
+                    enabled due to each known IdP TP having an enablement flag via identityProviders claim -->
+        <OrchestrationStep Order="4" Type="ClaimsProviderSelection" ContentDefinitionReferenceId="api.idpselections">
+            <Preconditions>
+                <Precondition Type="ClaimEquals" ExecuteActionsIf="false">
+                    <Value>isKnownCustomer</Value>
+                    <Value>True</Value>
+                    <Action>SkipThisOrchestrationStep</Action>
+                </Precondition>
+            </Preconditions>
+          <ClaimsProviderSelections>
+            <ClaimsProviderSelection TargetClaimsExchangeId="Conduent-OAuth-Rest" />
+          </ClaimsProviderSelections>
+        </OrchestrationStep>
+
+        <OrchestrationStep Order="5" Type="ClaimsExchange">
+          <Preconditions>
+            <Precondition Type="ClaimsExist" ExecuteActionsIf="true">
+              <Value>objectId</Value>
+              <Action>SkipThisOrchestrationStep</Action>
+            </Precondition>
+            <Precondition Type="ClaimEquals" ExecuteActionsIf="false">
+              <Value>isKnownCustomer</Value>
+              <Value>True</Value>
+              <Action>SkipThisOrchestrationStep</Action>
+            </Precondition>
+          </Preconditions>
+          <ClaimsExchanges>
+            <ClaimsExchange Id="Conduent-OAuth-Rest" TechnicalProfileReferenceId="AADConduent-OpenIdConnectRBAC" />
+          </ClaimsExchanges>
+        </OrchestrationStep>
+
+        <!-- For social IDP authentication, attempt to find the user account in the directory. -->
+        <OrchestrationStep Order="6" Type="ClaimsExchange">
+          <Preconditions>
+            <Precondition Type="ClaimEquals" ExecuteActionsIf="true">
+              <Value>authenticationSource</Value>
+              <Value>localAccountAuthentication</Value>
+              <Action>SkipThisOrchestrationStep</Action>
+            </Precondition>
+          </Preconditions>
+          <ClaimsExchanges>
+            <ClaimsExchange Id="AADUserReadUsingAlternativeSecurityId" TechnicalProfileReferenceId="AAD-UserReadUsingAlternativeSecurityId-NoError" />
+          </ClaimsExchanges>
+        </OrchestrationStep>
+        <!-- Show self-asserted page only if the directory does not have the user account already (i.e. we do not have an objectId). 
+          This can only happen when authentication happened using a social IDP. If local account was created or authentication done
+          using ESTS in step 2, then an user account must exist in the directory by this time. -->
+        <OrchestrationStep Order="7" Type="ClaimsExchange">
+          <Preconditions>
+            <Precondition Type="ClaimsExist" ExecuteActionsIf="true">
+              <Value>objectId</Value>
+              <Action>SkipThisOrchestrationStep</Action>
+            </Precondition>
+          </Preconditions>
+          <ClaimsExchanges>
+            <ClaimsExchange Id="SelfAsserted-Social" TechnicalProfileReferenceId="SelfAsserted-Social" />
+          </ClaimsExchanges>
+        </OrchestrationStep>
+        <!-- This step reads any user attributes that we may not have received when authenticating using ESTS so they can be sent 
+          in the token. -->
+        <OrchestrationStep Order="8" Type="ClaimsExchange">
+          <Preconditions>
+            <Precondition Type="ClaimEquals" ExecuteActionsIf="true">
+              <Value>authenticationSource</Value>
+              <Value>socialIdpAuthentication</Value>
+              <Action>SkipThisOrchestrationStep</Action>
+            </Precondition>
+          </Preconditions>
+          <ClaimsExchanges>
+            <ClaimsExchange Id="AADUserReadWithObjectId" TechnicalProfileReferenceId="AAD-UserReadUsingObjectId" />
+          </ClaimsExchanges>
+        </OrchestrationStep>
+
+        <OrchestrationStep Order="9" Type="ClaimsExchange">
+          <ClaimsExchanges>
+            <ClaimsExchange Id="REST-GetUserGroupWithAPIKey" TechnicalProfileReferenceId="REST-GetUserGroupWithAPIKey" />
+          </ClaimsExchanges>
+        </OrchestrationStep>
+
+        <OrchestrationStep Order="10" Type="ClaimsExchange">
+        <Preconditions>
+            <Precondition Type="ClaimEquals" ExecuteActionsIf="true">
+              <Value>userExists</Value>
+              <Value>true</Value>
+              <Action>SkipThisOrchestrationStep</Action>
+            </Precondition>
+          </Preconditions>
+          <ClaimsExchanges>
+            <ClaimsExchange Id="REST-AcquireAccessTokenForGraph" TechnicalProfileReferenceId="REST-AcquireAccessTokenForGraph" />
+          </ClaimsExchanges>
+        </OrchestrationStep>
+
+        <OrchestrationStep Order="11" Type="ClaimsExchange">
+          <Preconditions>
+            <Precondition Type="ClaimEquals" ExecuteActionsIf="true">
+              <Value>userExists</Value>
+              <Value>true</Value>
+              <Action>SkipThisOrchestrationStep</Action>
+            </Precondition>
+          </Preconditions>
+          <ClaimsExchanges>
+            <ClaimsExchange Id="REST-GetGroupMembership" TechnicalProfileReferenceId="REST-GetGroupMembership" />
+          </ClaimsExchanges>
+        </OrchestrationStep>
+        
+        <OrchestrationStep Order="12" Type="ClaimsExchange">
+          <Preconditions>
+            <Precondition Type="ClaimEquals" ExecuteActionsIf="true">
+              <Value>isMemberOfAllowRole</Value>
+              <Value>True</Value>
+              <Action>SkipThisOrchestrationStep</Action>
+            </Precondition>
+          </Preconditions>
+          <ClaimsExchanges>
+            <ClaimsExchange Id="ShowBlockPage" TechnicalProfileReferenceId="ShowBlockPage" />
+          </ClaimsExchanges>
+        </OrchestrationStep>
+
+        <!-- The previous step (SelfAsserted-Social) could have been skipped if there were no attributes to collect 
+             from the user. So, in that case, create the user in the directory if one does not already exist 
+             (verified using objectId which would be set from the last step if account was created in the directory. -->
+        <OrchestrationStep Order="13" Type="ClaimsExchange">
+          <Preconditions>
+            <Precondition Type="ClaimsExist" ExecuteActionsIf="true">
+              <Value>objectId</Value>
+              <Action>SkipThisOrchestrationStep</Action>
+            </Precondition>
+          </Preconditions>
+          <ClaimsExchanges>
+            <ClaimsExchange Id="AADUserWrite" TechnicalProfileReferenceId="AAD-UserWriteUsingAlternativeSecurityId" />
+          </ClaimsExchanges>
+        </OrchestrationStep>
+        <OrchestrationStep Order="14" Type="SendClaims" CpimIssuerTechnicalProfileReferenceId="JwtIssuer" />
 
       </OrchestrationSteps>
       <ClientDefinition ReferenceId="DefaultWeb" />
