@@ -33,8 +33,8 @@
         <OutputClaim ClaimTypeReferenceId="identityProvider" />
         <OutputClaim ClaimTypeReferenceId="userPrincipalName" />
         <!-- <OutputClaim ClaimTypeReferenceId="identityProviderAccessToken" PartnerClaimType="idp_access_token"/>
-        <OutputClaim ClaimTypeReferenceId="bearerToken" />
-        <OutputClaim ClaimTypeReferenceId="userExists" /> -->
+        <OutputClaim ClaimTypeReferenceId="bearerToken" />-->
+        <OutputClaim ClaimTypeReferenceId="userExists" /> 
         <OutputClaim ClaimTypeReferenceId="tenantId" AlwaysUseDefaultValue="true" DefaultValue="{Policy:TenantObjectId}" />
         <OutputClaim ClaimTypeReferenceId="identityProviders"/>
         <OutputClaim ClaimTypeReferenceId="isMemberOfAllowRole" />

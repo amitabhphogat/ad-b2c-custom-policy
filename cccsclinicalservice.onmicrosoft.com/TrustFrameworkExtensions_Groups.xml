@@ -409,13 +409,13 @@
     <ClaimsProvider>
       <DisplayName>Clinical Management API</DisplayName>
       <TechnicalProfiles>
-        <TechnicalProfile Id="REST-GetUserGroupWithAPIKey">
+       <TechnicalProfile Id="REST-GetUserGroupWithAPIKey">
           <DisplayName>Get User Profile</DisplayName>
           <Protocol Name="Proprietary" Handler="Web.TPEngine.Providers.RestfulProvider, Web.TPEngine, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" />
           <Metadata>
             <!-- Set the ServiceUrl with your own REST API endpoint -->
-            <Item Key="ServiceUrl">https://clinical-api-dev.services.conduent.com/profile/api/profile/{email}</Item>
-            <Item Key="SendClaimsIn">Header</Item>
+            <Item Key="ServiceUrl">https://clinical-api-dev.services.conduent.com/profile/api/user</Item>
+            <Item Key="SendClaimsIn">QueryString</Item>
             <Item Key="AuthenticationType">ApiKeyHeader</Item>
             <Item Key="AllowInsecureAuthInProduction">false</Item>
           </Metadata>
@@ -423,7 +423,38 @@
             <Key Id="Ocp-Apim-Subscription-Key" StorageReferenceId="B2C_1A_RestApiKey" />
           </CryptographicKeys>
           <InputClaims>
-            <InputClaim ClaimTypeReferenceId="email" />
+            <InputClaim ClaimTypeReferenceId="email" PartnerClaimType="userUniqueId" />
+          </InputClaims>
+           <OutputClaims>
+            <OutputClaim ClaimTypeReferenceId="userExists" DefaultValue="false" />
+            <OutputClaim ClaimTypeReferenceId="roles" />
+          </OutputClaims>
+          <OutputClaimsTransformations>
+            <OutputClaimsTransformation ReferenceId="HasNurseRole" />
+            <OutputClaimsTransformation ReferenceId="HasSupervisorRole" />
+            <OutputClaimsTransformation ReferenceId="HasAdminRole" />
+            <OutputClaimsTransformation ReferenceId="HasAgentRole" />
+            <OutputClaimsTransformation ReferenceId="AdminPortalAllowed" />
+            <OutputClaimsTransformation ReferenceId="NursePortalAllowed" />
+            <OutputClaimsTransformation ReferenceId="CheckIfMemberOfAllowRole" />
+          </OutputClaimsTransformations>
+          <UseTechnicalProfileForSessionManagement ReferenceId="SM-Noop" />
+        </TechnicalProfile>
+        <TechnicalProfile Id="REST-GetUserGroupWithAPIKeyTest">
+          <DisplayName>Get User Profile</DisplayName>
+          <Protocol Name="Proprietary" Handler="Web.TPEngine.Providers.RestfulProvider, Web.TPEngine, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" />
+          <Metadata>
+            <!-- Set the ServiceUrl with your own REST API endpoint -->
+            <Item Key="ServiceUrl">https://clinical-api-dev.services.conduent.com/profiletest/api/user</Item>
+            <Item Key="SendClaimsIn">QueryString</Item>
+            <Item Key="AuthenticationType">ApiKeyHeader</Item>
+            <Item Key="AllowInsecureAuthInProduction">false</Item>
+          </Metadata>
+          <CryptographicKeys>
+            <Key Id="Ocp-Apim-Subscription-Key" StorageReferenceId="B2C_1A_RestApiKey" />
+          </CryptographicKeys>
+          <InputClaims>
+            <InputClaim ClaimTypeReferenceId="email" PartnerClaimType="userUniqueId" />
           </InputClaims>
            <OutputClaims>
             <OutputClaim ClaimTypeReferenceId="userExists" DefaultValue="false" />
@@ -801,7 +832,7 @@
 
         <OrchestrationStep Order="9" Type="ClaimsExchange">
           <ClaimsExchanges>
-            <ClaimsExchange Id="REST-GetUserGroupWithAPIKey" TechnicalProfileReferenceId="REST-GetUserGroupWithAPIKey" />
+            <ClaimsExchange Id="REST-GetUserGroupWithAPIKeyTest" TechnicalProfileReferenceId="REST-GetUserGroupWithAPIKeyTest" />
           </ClaimsExchanges>
         </OrchestrationStep>
 
